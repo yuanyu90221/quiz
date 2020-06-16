@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 )
 
 func main() {
@@ -22,7 +23,6 @@ func main() {
 	r := csv.NewReader(csvfile)
 	// Iteracte through the records
 	correct := 0
-	wrong := 0
 	idx := 0
 	for {
 		// Read each problem set from csv
@@ -36,16 +36,17 @@ func main() {
 		}
 		idx++
 		fmt.Printf("Question %d: %s? ", idx, record[0])
-		solution, errFormat := strconv.Atoi(record[1])
+		solution, errFormat := strconv.Atoi(strings.TrimSpace(record[1]))
 		if errFormat != nil {
 			log.Fatal(errFormat)
 		}
 		var answer int
 		fmt.Scanf("%d", &answer)
 		if solution == answer {
+			fmt.Println("Correct")
 			correct++
 		} else {
-			wrong++
+			fmt.Println("Wrong")
 		}
 	}
 }
