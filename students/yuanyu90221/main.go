@@ -9,11 +9,13 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func main() {
 	// open the file
 	csvFilename := flag.String("csv", "problems.csv", "a csv file in the format of  'question, answer' ")
+	timeLimit := flag.Int("limit", 30, "the time limit for the quiz in seconds")
 	flag.Parse()
 	csvfile, err := os.Open(*csvFilename)
 	if err != nil {
@@ -24,6 +26,8 @@ func main() {
 	// Iteracte through the records
 	correct := 0
 	idx := 0
+
+	timer := time.NewTimer(time.Duration(*timeLimit) * time.Second)
 	for {
 		// Read each problem set from csv
 		record, err := r.Read()
@@ -40,14 +44,26 @@ func main() {
 		if errFormat != nil {
 			log.Fatal(errFormat)
 		}
-		var answer int
-		fmt.Scanf("%d", &answer)
-		if solution == answer {
-			fmt.Println("Correct")
-			correct++
-		} else {
-			fmt.Println("Wrong")
+		answerCh := make(chan int)
+		go func() {
+			var answer int
+			fmt.Scanf("%d", &answer)
+			answerCh <- answer
+		}()
+		select {
+		case <-timer.C:
+			fmt.Printf("Result correct rate: %d out of %d\n", correct, idx)
+			return
+		case answer := <-answerCh:
+			// fmt.Scanf("%d", &answer)
+			if solution == answer {
+				fmt.Println("Correct")
+				correct++
+			} else {
+				fmt.Println("Wrong")
+			}
 		}
+
 	}
 }
 
